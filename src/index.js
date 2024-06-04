@@ -5,5 +5,8 @@ if (inBrowser) {
 }
 
 function scriptLoadFailedHandler (event) {
-  
+  const eventTarget = event.target
+  if (eventTarget.tagName.toLowerCase() === 'script') {
+    console.log('脚本加载失败', eventTarget.src)
+  }
 }
