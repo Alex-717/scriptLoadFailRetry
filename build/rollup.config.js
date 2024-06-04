@@ -13,6 +13,7 @@ export default defineConfig({
   input: resolve(srcRoot, './index.js'),
   output: {
     format: 'iife',
+    name: 'scriptFailedReloadLib',
     // file: resolve(projectRoot, './dist/bundle.js')
     file: resolve(projectRoot, './test/public/js/bundle.js')
   },
