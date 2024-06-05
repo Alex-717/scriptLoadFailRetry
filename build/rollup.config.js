@@ -4,7 +4,7 @@ import { nodeResolve } from '@rollup/plugin-node-resolve'
 import commonjs from '@rollup/plugin-commonjs'
 import terser from '@rollup/plugin-terser'
 // import { babel } from '@rollup/plugin-babel'
-import { srcRoot, projectRoot } from './utils.js'
+import { srcRoot, projectRoot } from '../utils/path.js'
 import path from 'path'
 
 const resolve = path.resolve

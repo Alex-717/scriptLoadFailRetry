@@ -1,12 +1,47 @@
-import { inBrowser } from './utils'
+import { inBrowser, getFileName } from './utils'
 
-if (inBrowser) {
+const map = {}
+const targetList = []
+
+function register(options) {
+  if (!inBrowser) return
+  const { list = [] } = options
+  targetList.length = 0
+  targetList.push(...list)
+
   window.addEventListener('error', scriptLoadFailedHandler, true)
 }
 
 function scriptLoadFailedHandler (event) {
-  const eventTarget = event.target
-  if (eventTarget.tagName.toLowerCase() === 'script') {
-    console.log('脚本加载失败', eventTarget.src)
+  const target = event.target
+  const { src } = target
+  if (target.tagName.toLowerCase() !== 'script' || !isTargetFile(getFileName(src))) return
+  const retry = target.dataset.retry ? +target.dataset.retry : 1
+  const leftRetryTimes = getRetryTimes(src, retry)
+  if (leftRetryTimes > 0) {
+    document.write(`<script src="${src}"></script>`)
+    reduceRetryTimes(src)
   }
+}
+
+function isTargetFile (fileName) {
+  if (!fileName) return false
+  return targetList.find(it => fileName.startsWith(it)) ? true : false
+}
+
+function getRetryTimes(src, retry) {
+  if (map[src] === void 0) {
+    map[src] = retry
+  }
+  return map[src]
+}
+function reduceRetryTimes (src) {
+  if (map[src] !== void 0) {
+    map[src]--
+  }
+}
+
+export {
+  register as default,
+  register
 }
