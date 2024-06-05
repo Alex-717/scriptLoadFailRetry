@@ -14,3 +14,12 @@ export function getFileName (src) {
     return ''
   }
 }
+
+export function isScriptLoadFailError (event) {
+  if (ErrorEvent.prototype.isPrototypeOf(event)) return false
+  const { target } = event
+  const { src = '' } = target
+  if (!src) return false
+  if (!target.tagName || (target.tagName && target.tagName.toLowerCase() !== 'script')) return false
+  return true
+}

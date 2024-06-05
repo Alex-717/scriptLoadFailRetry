@@ -17,6 +17,15 @@ var scriptFailedReloadLib = (function (exports) {
     }
   }
 
+  function isScriptLoadFailError (event) {
+    if (ErrorEvent.prototype.isPrototypeOf(event)) return false
+    const { target } = event;
+    const { src = '' } = target;
+    if (!src) return false
+    if (!target.tagName || (target.tagName && target.tagName.toLowerCase() !== 'script')) return false
+    return true
+  }
+
   const map = {};
   const targetList = [];
 
@@ -30,9 +39,10 @@ var scriptFailedReloadLib = (function (exports) {
   }
 
   function scriptLoadFailedHandler (event) {
-    const target = event.target;
-    const { src } = target;
-    if (target.tagName.toLowerCase() !== 'script' || !isTargetFile(getFileName(src))) return
+    const { target } = event;
+    const { src = '' } = target;
+    // console.log('🐷🐷', target.tagName)
+    if (!isScriptLoadFailError(event) || !isTargetFile(getFileName(src))) return
     const retry = target.dataset.retry ? +target.dataset.retry : 1;
     const leftRetryTimes = getRetryTimes(src, retry);
     if (leftRetryTimes > 0) {

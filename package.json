@@ -5,7 +5,8 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "dev": "rollup -c ./build/rollup.config.js -w"
+    "dev": "rollup -c ./build/rollup.config.js -w",
+    "dev:test": "node ./test/src/app"
   },
   "keywords": [],
   "author": "",
