@@ -34,7 +34,6 @@ var scriptFailedReloadLib = (function (exports) {
     const { list = [] } = options;
     targetList.length = 0;
     targetList.push(...list);
-
     window.addEventListener('error', scriptLoadFailedHandler, true);
   }
 
