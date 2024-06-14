@@ -23,7 +23,7 @@ const buildConfig = function (options) {
     output: {
       format: config.format,
       name: config.name,
-      file: resolve(projectRoot, `./dist/bundle.${formatMap[config.format]}.js`)
+      file: resolve(projectRoot, `./dist/bundle.${formatMap[config.format]}${minify ? '.min' : ''}.js`)
     },
     plugins: [
       nodeResolve({ browser }),
@@ -36,6 +36,10 @@ const buildConfig = function (options) {
 
   if (config.external) {
     rollupConfig.external = config.external
+  }
+
+  if (config.exports) {
+    rollupConfig.output.exports = config.exports
   }
 
   return rollupConfig
@@ -61,6 +65,7 @@ export default [
   buildConfig({
     format: 'esm',
     external: [/@babel\/runtime/],
+    exports: 'named',
     plugins: [
       ...moduleBabelSet
     ]
@@ -68,24 +73,40 @@ export default [
   buildConfig({
     format: 'cjs',
     external: [/@babel\/runtime/],
+    exports: 'named',
     plugins: [
       ...moduleBabelSet
     ]
   }),
   buildConfig({
     format: 'umd',
+    name: 'scriptFailedReloadLib',
+    exports: 'named',
     plugins: [
       babel({
         babelHelpers: 'bundled',
-        presets: [
-          ['@babel/preset-env', {
-            useBuiltIns: 'usage',
-            corejs: 3
-          }]
-        ],
-        plugins: [
-          ["@babel/plugin-transform-runtime"]
-        ]
+        presets: ['@babel/preset-env'],
+        // presets: [
+        //   ['@babel/preset-env', {
+        //     useBuiltIns: 'usage',
+        //     corejs: 3
+        //   }]
+        // ],
+        // plugins: [
+        //   ["@babel/plugin-transform-runtime"]
+        // ]
+      })
+    ]
+  }),
+  buildConfig({
+    format: 'umd',
+    name: 'scriptFailedReloadLib',
+    exports: 'named',
+    minify: true,
+    plugins: [
+      babel({
+        babelHelpers: 'bundled',
+        presets: ['@babel/preset-env']
       })
     ]
   })
