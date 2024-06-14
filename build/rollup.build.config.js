@@ -1,11 +1,11 @@
 
-import { defineConfig } from 'rollup'
 import { nodeResolve } from '@rollup/plugin-node-resolve'
 import commonjs from '@rollup/plugin-commonjs'
 import terser from '@rollup/plugin-terser'
 import { babel } from '@rollup/plugin-babel'
 import { srcRoot, projectRoot } from '../utils/path.js'
-import path, { resolve } from 'path'
+import { resolve } from 'path'
+import bundleSize from 'rollup-plugin-bundle-size'
 
 const formatMap = {
   esm: 'esm',
@@ -17,8 +17,9 @@ const input = resolve(srcRoot, './index.js')
 
 const buildConfig = function (options) {
   const { browser = true, minify = false, ...config } = options
-  return [{
+  const rollupConfig = {
     input,
+    ...(config.external ? [] : []),
     output: {
       format: config.format,
       name: config.name,
@@ -27,33 +28,66 @@ const buildConfig = function (options) {
     plugins: [
       nodeResolve({ browser }),
       commonjs(),
-
-      ...config.plugins
+      minify && terser(),
+      minify && bundleSize(),
+      ...(config.plugins || [])
     ]
-  }]
+  }
+
+  if (config.external) {
+    rollupConfig.external = config.external
+  }
+
+  return rollupConfig
 }
 
-export default [
-  ...buildConfig({
-    format: 'esm',
-    plugins: [
 
+const moduleBabelSet = [
+  babel({
+    babelHelpers: 'runtime',
+    presets: ['@babel/preset-env'],
+    plugins: [
+      ['@babel/plugin-transform-runtime', {
+        absoluteRuntime: false,
+        corejs: 3,
+        helpers: true,
+        regenerator: true
+      }]
     ]
   })
 ]
 
-// export default defineConfig({
-//   input: resolve(srcRoot, './index.js'),
-//   output: {
-//     format: 'iife',
-//     name: 'scriptFailedReloadLib',
-//     // file: resolve(projectRoot, './dist/bundle.js')
-//     file: resolve(projectRoot, './test/public/js/bundle.js')
-//   },
-//   plugins: [
-//     nodeResolve(),
-//     commonjs(),
-//     // babel()
-//   ]
-// })
+export default [
+  buildConfig({
+    format: 'esm',
+    external: [/@babel\/runtime/],
+    plugins: [
+      ...moduleBabelSet
+    ]
+  }),
+  buildConfig({
+    format: 'cjs',
+    external: [/@babel\/runtime/],
+    plugins: [
+      ...moduleBabelSet
+    ]
+  }),
+  buildConfig({
+    format: 'umd',
+    plugins: [
+      babel({
+        babelHelpers: 'bundled',
+        presets: [
+          ['@babel/preset-env', {
+            useBuiltIns: 'usage',
+            corejs: 3
+          }]
+        ],
+        plugins: [
+          ["@babel/plugin-transform-runtime"]
+        ]
+      })
+    ]
+  })
+]
 
