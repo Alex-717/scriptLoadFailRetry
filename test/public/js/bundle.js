@@ -3,19 +3,19 @@ var scriptFailedReloadLib = (function (exports) {
 
   const inBrowser = typeof window !== 'undefined';
 
-  function getFileName (src) {
-    if (!src) return ''
-    try {
-      const { pathname } = new URL(src);
-      if (!pathname) return
-      const array = pathname.split('/');
-      const fileName = array[array.length-1];
-      return fileName
-    } catch (err) {
-      console.error(err);
-      return ''
-    }
-  }
+  // export function getFileName (src) {
+  //   if (!src) return ''
+  //   try {
+  //     const { pathname } = new URL(src)
+  //     if (!pathname) return
+  //     const array = pathname.split('/')
+  //     const fileName = array[array.length-1]
+  //     return fileName
+  //   } catch (err) {
+  //     console.error(err)
+  //     return ''
+  //   }
+  // }
 
   function isScriptLoadFailError (event) {
     if (ErrorEvent.prototype.isPrototypeOf(event)) return false
@@ -27,13 +27,9 @@ var scriptFailedReloadLib = (function (exports) {
   }
 
   const map = {};
-  const targetList = [];
 
-  function register(options) {
+  function register() {
     if (!inBrowser) return
-    const { list = [] } = options;
-    targetList.length = 0;
-    targetList.push(...list);
     window.addEventListener('error', scriptLoadFailedHandler, true);
   }
 
@@ -41,18 +37,14 @@ var scriptFailedReloadLib = (function (exports) {
     const { target } = event;
     const { src = '' } = target;
     // console.log('🐷🐷', target.tagName)
-    if (!isScriptLoadFailError(event) || !isTargetFile(getFileName(src))) return
-    const retry = target.dataset.retry ? +target.dataset.retry : 1;
+    if (!isScriptLoadFailError(event)) return
+    const retry = target.dataset.retry ? +target.dataset.retry : 0;
     const leftRetryTimes = getRetryTimes(src, retry);
     if (leftRetryTimes > 0) {
+      // console.dir(target)
       document.write(`<script src="${src}"></script>`);
       reduceRetryTimes(src);
     }
-  }
-
-  function isTargetFile (fileName) {
-    if (!fileName) return false
-    return targetList.find(it => fileName.startsWith(it)) ? true : false
   }
 
   function getRetryTimes(src, retry) {

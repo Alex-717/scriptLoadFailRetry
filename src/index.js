@@ -1,13 +1,9 @@
-import { inBrowser, getFileName, isScriptLoadFailError } from './utils'
+import { inBrowser, isScriptLoadFailError } from './utils'
 
 const map = {}
-const targetList = []
 
-function register(options) {
+function register() {
   if (!inBrowser) return
-  const { list = [] } = options
-  targetList.length = 0
-  targetList.push(...list)
   window.addEventListener('error', scriptLoadFailedHandler, true)
 }
 
@@ -15,18 +11,14 @@ function scriptLoadFailedHandler (event) {
   const { target } = event
   const { src = '' } = target
   // console.log('🐷🐷', target.tagName)
-  if (!isScriptLoadFailError(event) || !isTargetFile(getFileName(src))) return
-  const retry = target.dataset.retry ? +target.dataset.retry : 1
+  if (!isScriptLoadFailError(event)) return
+  const retry = target.dataset.retry ? +target.dataset.retry : 0
   const leftRetryTimes = getRetryTimes(src, retry)
   if (leftRetryTimes > 0) {
+    // console.dir(target)
     document.write(`<script src="${src}"></script>`)
     reduceRetryTimes(src)
   }
-}
-
-function isTargetFile (fileName) {
-  if (!fileName) return false
-  return targetList.find(it => fileName.startsWith(it)) ? true : false
 }
 
 function getRetryTimes(src, retry) {
