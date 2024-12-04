@@ -1,5 +1,5 @@
-import { inBrowser, isScriptLoadFailError } from './utils'
 
+const inBrowser = typeof window !== 'undefined'
 const map = {}
 
 function register() {
@@ -15,8 +15,7 @@ function scriptLoadFailedHandler (event) {
   const retry = target.dataset.retry ? +target.dataset.retry : 0
   const leftRetryTimes = getRetryTimes(src, retry)
   if (leftRetryTimes > 0) {
-    // console.dir(target)
-    document.write(`<script src="${src}"></script>`)
+    document.write("<scr" + "ipt src = " + src + "></scr" + "ipt>")
     reduceRetryTimes(src)
   }
 }
@@ -31,6 +30,15 @@ function reduceRetryTimes (src) {
   if (map[src] !== void 0) {
     map[src]--
   }
+}
+
+function isScriptLoadFailError (event) {
+  if (ErrorEvent.prototype.isPrototypeOf(event)) return false
+  const { target } = event
+  const { src = '' } = target
+  if (!src) return false
+  if (!target.tagName || (target.tagName && target.tagName.toLowerCase() !== 'script')) return false
+  return true
 }
 
 export {
